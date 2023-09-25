@@ -1,0 +1,10 @@
+{
+  "name": "DiscordChats",
+  "author": "alb3rtov",
+  "flags": ["debug", "_root"],
+  "publish": {
+    "tags": ["template", "root"],
+    "description": "Talk to your friends via discord from the steam deck game ui. Similar to Friends steam deck tab.",
+    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+  }
+}
