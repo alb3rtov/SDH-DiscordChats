@@ -1,109 +1,62 @@
 import {
-  ButtonItem,
   definePlugin,
-  DialogButton,
-  Menu,
-  MenuItem,
+  Field,
   PanelSection,
   PanelSectionRow,
-  Router,
   ServerAPI,
-  showContextMenu,
   staticClasses,
 } from "decky-frontend-lib";
-import { VFC } from "react";
-import { FaDiscord } from "react-icons/fa";
-
-import logo from "../assets/logo.png";
-
-// interface AddMethodArgs {
-//   left: number;
-//   right: number;
-// }
+import { VFC, useState } from "react";
+import { FaDiscord, FaDotCircle, FaCircle, FaMoon, FaMinusCircle } from "react-icons/fa";
 
 const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
-  //const [result, setResult] = useState<number | undefined>();
+  const [connectedFriends, setConnectedFriends] = useState(1);
+  const [disconnectedFriends, setDisconnectedFriends] = useState(2);
 
-  // const onClick = async () => {
-  //   const result = await serverAPI.callPluginMethod<AddMethodArgs, number>(
-  //     "add",
-  //     {
-  //       left: 2,
-  //       right: 2,
-  //     }
-  //   );
-  //   if (result.success) {
-  //     setResult(result.result);
-  //   }
-  // };
-
-  const clickTest = async () => {
-    console.log(await serverAPI!.callPluginMethod("test_print", {}));
+  const test_print = async () => {
+    console.log("This is a ...")
+    const result = await serverAPI!.callPluginMethod("test_print", {});
+    console.log(result);
+    setConnectedFriends(20);
+    setDisconnectedFriends(50);
   }
 
   return (
     <PanelSection title="Friends">
-      <PanelSection title="Online">
+      <PanelSection title={`Online (${connectedFriends})`}>
         <PanelSectionRow>
-          {
-          <ButtonItem
-            layout="below"
-            onClick={(e) =>
-              showContextMenu(
-                <Menu label="Menu" cancelText="CAAAANCEL" onCancel={() => {}}>
-                  <MenuItem onSelected={() => {clickTest()}}>Item #1</MenuItem>
-                  <MenuItem onSelected={() => {}}>Item #2</MenuItem>
-                  <MenuItem onSelected={() => {}}>Item #3</MenuItem>
-                </Menu>,
-                e.currentTarget ?? window
-              )
-            }
-          >
-            Server says yolo
-          </ButtonItem>}
+          <Field focusable={true} icon={<FaCircle size={10} color="#43b581"/>} label="Friend connected 1" description="Online" onClick={() => {test_print()}}>
+
+          </Field>
+          <Field focusable={true} icon={<FaMoon size={10} color="#faa61a"/>} label="Friend connected 2" description="Idle" onClick={() => {test_print()}}>
+
+          </Field>
+          <Field focusable={true} icon={<FaMinusCircle size={10} color="#f04747"/>} label="Friend connected 3" description="Do Not Disturb" onClick={() => {test_print()}}>
+
+          </Field>
+          <Field focusable={true} icon={<FaCircle size={10} color="#d522f5"/>} label="Friend connected 4" description="Streaming" onClick={() => {test_print()}}>
+
+          </Field>
+
         </PanelSectionRow>
       </PanelSection>
      
-      <PanelSection title="Disconnected">
-        {/*
+      <PanelSection title={`Disconnected (${disconnectedFriends})`}>
         <PanelSectionRow>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <img src={logo} />
-          </div>
-        </PanelSectionRow>
-          
-        <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={() => {
-              Router.CloseSideMenus();
-              Router.Navigate("/decky-plugin-test");
-            }}
-          >
-            Router
-          </ButtonItem>
-        </PanelSectionRow>*/}
+          <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 1" description="Offline" onClick={() => {test_print()}}></Field>
+          <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 2" description="Offline" onClick={() => {test_print()}}></Field>
+          <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 3" description="Offline" onClick={() => {test_print()}}></Field>
+          <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 4" description="Offline" onClick={() => {test_print()}}></Field>
+          </PanelSectionRow>
+
       </PanelSection>
 
     </PanelSection>
   );
 };
 
-const DeckyPluginRouterTest: VFC = () => {
-  return (
-    <div style={{ marginTop: "50px", color: "white" }}>
-      Hello World!
-      <DialogButton onClick={() => Router.NavigateToLibraryTab()}>
-        Go to Library
-      </DialogButton>
-    </div>
-  );
-};
-
 export default definePlugin((serverApi: ServerAPI) => {
-  serverApi.routerHook.addRoute("/decky-plugin-test", DeckyPluginRouterTest, {
-    exact: true,
-  });
+
 
   return {
     title: <div className={staticClasses.Title}>Discord Chats</div>,

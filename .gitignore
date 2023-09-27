@@ -18,7 +18,8 @@ coverage
 
 # API keys and secrets
 .env
-venv/
+.venv/
+token.txt
 
 # Dependency directory
 node_modules
@@ -57,3 +58,6 @@ out/*
 cli/
 cli/*
 cli/decky
+
+# Testing
+tests/
