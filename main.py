@@ -13,10 +13,7 @@ sys.path.append(os.path.dirname(__file__))
 
 from BotClient import BotClient
 
-
 os.environ["SSL_CERT_FILE"] = certifi.where()
-client = BotClient()
-token = 'token'
 
 def run_bot(client, token):
     try:
@@ -24,30 +21,35 @@ def run_bot(client, token):
     except Exception as e:
         decky_plugin.logger.info(f"An error occurred: {e}")
 
-
-
 class Plugin:
-    # A normal method. It can be called from JavaScript using call_plugin_function("method_1", argument1, argument2)
-    async def add(self, left, right):
-        return left + right
+    async def get_login(self):
+        return self.login
+
+    async def set_login(self, status):
+        decky_plugin.logger.info(status)
+        self.login = status
+        decky_plugin.logger.info(self.login)
 
     async def stop_bot(self):
-        client.stop_bot()  # Call the stop_bot method to stop the bot gracefully
-        return "stopbot"
+        self.client.stop_bot() 
         
     async def start_bot(self):
-        bot_thread = threading.Thread(target=run_bot, args=(client, token,))
+        self.client = BotClient()
+        bot_thread = threading.Thread(name='StartBotThread', target=run_bot, args=(self.client, self.token,))
         bot_thread.start()
-        return "startbot"
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
+        self.client = BotClient()
+        self.token = 'token'
+        self.login = 0
+
         decky_plugin.logger.info("Hello World!")
 
         #for thread in threading.enumerate(): 
         #   decky_plugin.logger.info(thread.name)
 
-        self.establish_connection()
+        #await self.start_bot()
 
         #for thread in threading.enumerate(): 
         #   decky_plugin.logger.info(thread.name)

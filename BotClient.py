@@ -1,3 +1,4 @@
+import os
 import discord
 import decky_plugin
 
@@ -23,5 +24,8 @@ class BotClient(discord.Client):
             print(f' - {channel.name} (Type: {channel.type}, ID: {channel.id})')
 
     def stop_bot(self):
-        self.keep_running = False  # Set the flag to False to stop the bot
-        self.loop.stop()  # Stop the event loop
+        try:
+            self.keep_running = False  # Set the flag to False to stop the bot
+            self.loop.stop()  # Stop the event loop
+        except RuntimeError as re:
+            pass
