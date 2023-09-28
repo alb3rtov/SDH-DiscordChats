@@ -1,24 +1,58 @@
 import os
+import sys
 
 # The decky plugin module is located at decky-loader/plugin
 # For easy intellisense checkout the decky-loader code one directory up
 # or add the `decky-loader/plugin` path to `python.analysis.extraPaths` in `.vscode/settings.json`
 import decky_plugin
 
-import discord
-from discord.ext import commands
+import threading
+import certifi
+
+sys.path.append(os.path.dirname(__file__))
+
+from BotClient import BotClient
+
+
+os.environ["SSL_CERT_FILE"] = certifi.where()
+client = BotClient()
+token = 'token'
+
+def run_bot(client, token):
+    try:
+        client.run(token)
+    except Exception as e:
+        decky_plugin.logger.info(f"An error occurred: {e}")
+
+
 
 class Plugin:
     # A normal method. It can be called from JavaScript using call_plugin_function("method_1", argument1, argument2)
     async def add(self, left, right):
         return left + right
 
-    async def test_print(self):
-        return "test"
+    async def stop_bot(self):
+        client.stop_bot()  # Call the stop_bot method to stop the bot gracefully
+        return "stopbot"
+        
+    async def start_bot(self):
+        bot_thread = threading.Thread(target=run_bot, args=(client, token,))
+        bot_thread.start()
+        return "startbot"
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
         decky_plugin.logger.info("Hello World!")
+
+        #for thread in threading.enumerate(): 
+        #   decky_plugin.logger.info(thread.name)
+
+        self.establish_connection()
+
+        #for thread in threading.enumerate(): 
+        #   decky_plugin.logger.info(thread.name)
+
+        decky_plugin.logger.info("FIn Hello World!")
 
 
     # Function called first during the unload process, utilize this to handle your plugin being removed
