@@ -1,4 +1,3 @@
-import os
 import discord
 import decky_plugin
 
@@ -12,10 +11,11 @@ class BotClient(discord.Client):
     async def on_ready(self):
         decky_plugin.logger.info(f'Logged in as {self.user.name}')
 
-    def get_guild_id(self):
+    async def get_server_name(self):
         if self.guilds:
-            for guild in self.guilds:
-                return guild
+            server_name = self.guilds[0]
+            decky_plugin.logger.info(server_name)
+            return server_name
         else:
             return "Not in any guilds."
     
@@ -25,7 +25,6 @@ class BotClient(discord.Client):
 
     def stop_bot(self):
         try:
-            self.keep_running = False  # Set the flag to False to stop the bot
-            self.loop.stop()  # Stop the event loop
+            self.loop.stop()
         except RuntimeError as re:
             pass

@@ -15,28 +15,26 @@ import { FaDiscord, FaDotCircle, FaCircle, FaMoon, FaMinusCircle } from "react-i
 const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   const [connectedFriends, setConnectedFriends] = useState(1);
   const [disconnectedFriends, setDisconnectedFriends] = useState(2);
-  const [login, setLogin] = useState<number>(0);
-
+  const [serverName, setServerName] = useState<string>("");
+  const [login, setLogin] = useState(0);
+  
   const test_print = async () => {
-    console.log("This is a ...")
-
+    console.log("This is a test")
     setConnectedFriends(20);
     setDisconnectedFriends(50);
   }
 
   const stop_bot = async () => {
-    const result = await serverAPI!.callPluginMethod("stop_bot", {});
-    console.log(result)
+    setLogin(2);
+    serverAPI!.callPluginMethod("stop_bot", {});
   }
 
   const start_bot = async () => {
-    const result = await serverAPI!.callPluginMethod("start_bot", {});
-    console.log(result)
+    await serverAPI!.callPluginMethod("start_bot", {});
   }
 
   const get_login_status = async () => {
     const result = await serverAPI!.callPluginMethod("get_login", {});
-    console.log("Esto del useeffect: "+ result.result)
     if (result.success) {
       setLogin(result.result as number)
     }
@@ -45,15 +43,20 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   const set_login_status = async (status: number) => {
     await serverAPI!.callPluginMethod("set_login", {"status":status});
     setLogin(status as number)
-    console.log(login)
   }
+
 
   useEffect(() => {
     get_login_status();
   }, []);
 
+  useEffect(() => {
+    console.log(login);
+  }, [login]);
+
+
   const Sessions = (
-    <PanelSectionRow style={{ fontSize: "12px", marginBottom: "10px", marginLeft: "20px"}}>
+    <PanelSectionRow style={{ fontSize: "13px", marginLeft: "18px", marginRight: "18px"}}>
      There is an active session, wait for it to close and try again later.
     </PanelSectionRow>
   );
@@ -69,36 +72,26 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
           }}
         >
           Login with token
-        </ButtonItem>
+        </ButtonItem> 
       </PanelSectionRow>
 
     </PanelSection>
   );
 
-  const Chats = (
-    
-    <PanelSection title="Friends">
 
-
+  const MembersOnline = (
       <PanelSection title={`Online (${connectedFriends})`}>
         <PanelSectionRow>
-          <Field focusable={true} icon={<FaCircle size={10} color="#43b581"/>} label="Friend connected 1" description="Online" onClick={() => {test_print()}}>
-
-          </Field>
-          <Field focusable={true} icon={<FaMoon size={10} color="#faa61a"/>} label="Friend connected 2" description="Idle" onClick={() => {test_print()}}>
-
-          </Field>
-          <Field focusable={true} icon={<FaMinusCircle size={10} color="#f04747"/>} label="Friend connected 3" description="Do Not Disturb" onClick={() => {test_print()}}>
-
-          </Field>
-          <Field focusable={true} icon={<FaCircle size={10} color="#d522f5"/>} label="Friend connected 4" description="Streaming" onClick={() => {test_print()}}>
-
-          </Field>
-
+          <Field focusable={true} icon={<FaCircle size={10} color="#43b581"/>} label="Friend connected 1" description="Online" onClick={() => {test_print()}}></Field>
+          <Field focusable={true} icon={<FaMoon size={10} color="#faa61a"/>} label="Friend connected 2" description="Idle" onClick={() => {test_print()}}></Field>
+          <Field focusable={true} icon={<FaMinusCircle size={10} color="#f04747"/>} label="Friend connected 3" description="Do Not Disturb" onClick={() => {test_print()}}></Field>
+          <Field focusable={true} icon={<FaCircle size={10} color="#d522f5"/>} label="Friend connected 4" description="Streaming" onClick={() => {test_print()}}></Field>
         </PanelSectionRow>
       </PanelSection>
-     
-      <PanelSection title={`Disconnected (${disconnectedFriends})`}>
+  );
+
+  const MembersOffline = (
+      <PanelSection title={`Offline (${disconnectedFriends})`}>
         <PanelSectionRow>
           <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 1" description="Offline" onClick={() => {test_print()}}></Field>
           <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 2" description="Offline" onClick={() => {test_print()}}></Field>
@@ -107,29 +100,40 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
           </PanelSectionRow>
 
       </PanelSection>
-      <PanelSection title="Logout">
-      <PanelSectionRow>
-        <ButtonItem
-          layout="below"
-          onClick={() => {
-            set_login_status(0);
-            stop_bot();
-          }}
-        >
-          Logout
-        </ButtonItem>
-      </PanelSectionRow>
+  );  
 
+  const LogOut = (
+    <PanelSection title="Logout">
+    <PanelSectionRow>
+      <ButtonItem
+        layout="below"
+        onClick={() => {
+          //set_login_status(0);
+          stop_bot();
+        }}
+      >
+        Logout
+      </ButtonItem>
+    </PanelSectionRow>
+
+  </PanelSection>
+  );
+
+  const ServerChats = (
+    <PanelSection title={`Server: ${serverName}`}>
+      {MembersOnline}
+      {MembersOffline}
+      {LogOut}
     </PanelSection>
-    </PanelSection>
-    
   );
 
   return (
     <React.Fragment>
       {login == 0 && Login}
-      {login == 0 && Sessions}
-      {login == 1 && Chats}
+
+      {login == 2 && Sessions}
+
+      {login == 1 && ServerChats}
     </React.Fragment>
   );
 };
