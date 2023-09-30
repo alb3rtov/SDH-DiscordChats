@@ -11,13 +11,21 @@ class BotClient(discord.Client):
     async def on_ready(self):
         decky_plugin.logger.info(f'Logged in as {self.user.name}')
 
-    async def get_server_name(self):
-        if self.guilds:
-            server_name = self.guilds[0]
-            decky_plugin.logger.info(server_name)
-            return server_name
+    def get_server_name(self):
+        server_name = "Not in a guild!"
+        for guild in self.guilds:
+            server_name = guild.name
+            break
+        return server_name
+
+    async def send_message_to_user(self, user_id):
+        decky_plugin.logger.info("hello from botclient.py")
+        decky_plugin.logger.info(f'Logeado como: {self.user.name}')
+        user = self.get_user(user_id)
+        if user:
+            await user.send("desdes el plugin te mando este mensaje")
         else:
-            return "Not in any guilds."
+            decky_plugin.logger.info("Usuario no encontrado")
     
     def get_channels_guild(self, guild):
         for channel in guild.channels:

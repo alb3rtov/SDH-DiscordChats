@@ -1,6 +1,6 @@
 import os
 import sys
-import time
+import asyncio
 # The decky plugin module is located at decky-loader/plugin
 # For easy intellisense checkout the decky-loader code one directory up
 # or add the `decky-loader/plugin` path to `python.analysis.extraPaths` in `.vscode/settings.json`
@@ -18,14 +18,25 @@ os.environ["SSL_CERT_FILE"] = certifi.where()
 def run_bot(client, token, login):
     try:
         client.run(token)
-    except Exception as e:
+    except RuntimeError as re:
         login[0] = 0
+        decky_plugin.logger.warning(f"Logout: {re}")
+    except Exception as e:
         decky_plugin.logger.info(f"An error occurred: {e}")
 
 class Plugin:
+    async def send_message_to_user(self):
+        decky_plugin.logger.info("From main.py before call send_message_to_user ")
+        msg = asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(1), self.client.loop)
+        #msg.result()
+        decky_plugin.logger.info("MESSAGE SENDED? ")
+        
     async def get_server_name(self):
         self.server_name = self.client.get_server_name()
-        decky_plugin.logger.info(self.server_name)
+        decky_plugin.logger.info("desde main.py: " + self.server_name)
+        return self.server_name
+
+    async def get_server_name_m(self):
         return self.server_name
 
     async def get_login(self):
