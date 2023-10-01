@@ -18,9 +18,6 @@ os.environ["SSL_CERT_FILE"] = certifi.where()
 def run_bot(client, token, login):
     try:
         client.run(token)
-    except RuntimeError as re:
-        login[0] = 0
-        decky_plugin.logger.warning(f"Logout: {re}")
     except Exception as e:
         decky_plugin.logger.info(f"An error occurred: {e}")
 
@@ -41,7 +38,7 @@ class Plugin:
         return self.channels
 
     async def send_message_to_user(self):
-        msg = asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(1), self.client.loop)
+        asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(1), self.client.loop)
         
     async def get_server_name(self):
         self.server_name = self.client.get_server_name()
@@ -56,9 +53,10 @@ class Plugin:
     async def set_login(self, status):
         self.login[0] = status
 
-    async def stop_bot(self):
+    async def close_session(self):
         self.login[0] = 2
-        await self.client.stop_bot()
+        asyncio.run_coroutine_threadsafe(self.client.close_session(), self.client.loop)
+        self.login[0] = 0
         
     async def start_bot(self):
         self.client = BotClient()

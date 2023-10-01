@@ -25,6 +25,9 @@ class BotClient(discord.Client):
         else:
             decky_plugin.logger.info("Usuario no encontrado")
     
+    async def close_session(self):
+        await self.close()
+
     def get_channels(self):
         channels = {}
         for guild in self.guilds:
@@ -56,9 +59,4 @@ class BotClient(discord.Client):
                 if str(self.user.name) != member.name and str(member.status) == "offline":
                     offline_members[member.id] = str(member.name)
         return offline_members
-    
-    def stop_bot(self):
-        try:
-            self.loop.stop()
-        except RuntimeError as re:
-            pass
+

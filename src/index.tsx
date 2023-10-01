@@ -30,9 +30,9 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     setDisconnectedFriends(50);
   }*/
 
-  const stop_bot = async () => {
+  const close_session = async () => {
     setLogin(2);
-    serverAPI!.callPluginMethod("stop_bot", {});
+    serverAPI!.callPluginMethod("close_session", {});
   }
 
   const start_bot = async () => {
@@ -199,7 +199,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
       <ButtonItem
         layout="below"
         onClick={() => {
-          stop_bot();
+          close_session();
         }}
       >
         Logout
