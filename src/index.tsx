@@ -14,17 +14,21 @@ import { FaDiscord, FaDotCircle, FaCircle, FaMoon, FaMinusCircle } from "react-i
 
 import logo from "../assets/logo3.png";
 
+type DictType = { [key: string]: string };
+
 const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
-  const [connectedFriends, setConnectedFriends] = useState(1);
-  const [disconnectedFriends, setDisconnectedFriends] = useState(2);
   const [serverName, setServerName] = useState<string>("");
+  const [channels, setChannels] = useState<DictType>({});
+  const [onlineMembers, setOnlineMembers] = useState<DictType>({});
+  const [offlineMembers, setOfflineMembers] = useState<DictType>({});
   const [login, setLogin] = useState(0);
   
+  /*
   const test_print = async () => {
     console.log("This is a test")
     setConnectedFriends(20);
     setDisconnectedFriends(50);
-  }
+  }*/
 
   const stop_bot = async () => {
     setLogin(2);
@@ -59,11 +63,40 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     if (result.success) {
       setServerName(result.result as string)
     }
+  }
+
+  const get_channels = async () => {
+    const result = await serverAPI!.callPluginMethod("get_channels", {});
+    if (result.success) {
+      setChannels(result.result as DictType)
+    }
   }  
   
+  const get_channels_m = async () => {
+    const result = await serverAPI!.callPluginMethod("get_channels_m", {});
+    if (result.success) {
+      setChannels(result.result as DictType)
+    }
+  }
+  
+  const get_online_members = async () => {
+    const result = await serverAPI!.callPluginMethod("get_online_members", {});
+    if (result.success) {
+      setOnlineMembers(result.result as DictType)
+    }
+  }
+
+  const get_offline_members = async () => {
+    const result = await serverAPI!.callPluginMethod("get_offline_members", {});
+    if (result.success) {
+      setOfflineMembers(result.result as DictType)
+    }
+  }  
+
+  /*
   const send_message_to_user = async () => {
     await serverAPI!.callPluginMethod("send_message_to_user", {});
-  }  
+  } */
 
   useEffect(() => {
     get_login_status();
@@ -72,8 +105,14 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   useEffect(() => {
     if (login == 1) {
       get_server_name_m();
+      get_channels_m();
       if (serverName == "") {
-        setTimeout(()=>{get_server_name();}, 4000)
+        setTimeout(()=>{
+          get_server_name();
+          get_channels();
+          get_online_members();
+          get_offline_members();
+        }, 4000)
       }
     }
   }, [login]);
@@ -102,24 +141,54 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 
 
-  const MembersOnline = (
-      <PanelSection title={`Online (${connectedFriends})`}>
-        <PanelSectionRow>
-          <Field focusable={true} icon={<FaCircle size={10} color="#43b581"/>} label="Friend connected 1" description="Online" onClick={() => {send_message_to_user()}}></Field>
-          <Field focusable={true} icon={<FaMoon size={10} color="#faa61a"/>} label="Friend connected 2" description="Idle" onClick={() => {test_print()}}></Field>
-          <Field focusable={true} icon={<FaMinusCircle size={10} color="#f04747"/>} label="Friend connected 3" description="Do Not Disturb" onClick={() => {test_print()}}></Field>
-          <Field focusable={true} icon={<FaCircle size={10} color="#d522f5"/>} label="Friend connected 4" description="Streaming" onClick={() => {test_print()}}></Field>
+  const Channels = (
+    <PanelSection title="Channels">
+      <PanelSectionRow>
+        {Object.entries(channels).map(([key, name]) => (
+          <Field key={key} focusable={true} label={name}></Field>
+        ))}
         </PanelSectionRow>
+    </PanelSection>
+  );  
+  
+  function getStatusIcon(status : string) {
+    switch (status) {
+      case "Online":
+        return <FaCircle size={10} color="#43b581" />;
+      case "Idle":
+        return <FaMoon size={10} color="#faa61a" />;
+      case "Do Not Disturb":
+        return <FaMinusCircle size={10} color="#f04747" />;
+      case "Offline":
+        return <FaDotCircle size={10} color="#747f8d" />; 
+      default:
+        return null;
+    }
+  }
+
+  const OnlineMembers = (
+      <PanelSection title={"Online (" + Object.keys(onlineMembers).length + ")"}>
+        <PanelSectionRow>
+        {Object.entries(onlineMembers).map(([key, name]) => {
+          const [userName, status] = name.split(';');
+          const icon = getStatusIcon(status); 
+          return (
+            <Field key={key} icon={icon} focusable={true} label={userName} description={status}></Field>
+          );
+        })}
+          </PanelSectionRow>
       </PanelSection>
   );
 
-  const MembersOffline = (
-      <PanelSection title={`Offline (${disconnectedFriends})`}>
+  const OfflineMembers = (
+      <PanelSection title={"Offline (" + Object.keys(offlineMembers).length + ")"}>
         <PanelSectionRow>
-          <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 1" description="Offline" onClick={() => {test_print()}}></Field>
-          <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 2" description="Offline" onClick={() => {test_print()}}></Field>
-          <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 3" description="Offline" onClick={() => {test_print()}}></Field>
-          <Field focusable={true} icon={<FaDotCircle size={10} color="#747f8d"/>} label="Friend disconnected 4" description="Offline" onClick={() => {test_print()}}></Field>
+        {Object.entries(offlineMembers).map(([key, name]) => {
+          const icon = getStatusIcon("Offline"); 
+          return (
+            <Field key={key} icon={icon} focusable={true} label={name} description="Offline"></Field>
+          );
+        })}
           </PanelSectionRow>
       </PanelSection>
   );  
@@ -142,8 +211,9 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
 
   const ServerChats = (
     <PanelSection title={`Server: ${serverName}`}>
-      {MembersOnline}
-      {MembersOffline}
+      {Channels}
+      {OnlineMembers}
+      {OfflineMembers}
       {LogOut}
     </PanelSection>
   );

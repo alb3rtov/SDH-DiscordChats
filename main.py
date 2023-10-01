@@ -24,16 +24,27 @@ def run_bot(client, token, login):
     except Exception as e:
         decky_plugin.logger.info(f"An error occurred: {e}")
 
-class Plugin:
+class Plugin:    
+    async def get_offline_members(self):
+        self.offline_members = self.client.get_offline_members()
+        return self.offline_members
+        
+    async def get_online_members(self):
+        self.online_members = self.client.get_online_members()
+        return self.online_members
+        
+    async def get_channels(self):
+        self.channels = self.client.get_channels()
+        return self.channels
+
+    async def get_channels_m(self):
+        return self.channels
+
     async def send_message_to_user(self):
-        decky_plugin.logger.info("From main.py before call send_message_to_user ")
         msg = asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(1), self.client.loop)
-        #msg.result()
-        decky_plugin.logger.info("MESSAGE SENDED? ")
         
     async def get_server_name(self):
         self.server_name = self.client.get_server_name()
-        decky_plugin.logger.info("desde main.py: " + self.server_name)
         return self.server_name
 
     async def get_server_name_m(self):
@@ -60,7 +71,10 @@ class Plugin:
         self.client = BotClient()
         self.login = [0]
         self.server_name = ""
-
+        self.channels = {}
+        self.online_members = {}
+        self.offline_members = {}
+        
         try:
             with open("token.txt", "r") as file:
                 self.token = file.read()
