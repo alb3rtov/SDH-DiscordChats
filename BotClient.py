@@ -11,6 +11,9 @@ class BotClient(discord.Client):
     async def on_ready(self):
         decky_plugin.logger.info(f'Logged in as {self.user.name}')
 
+    def get_user_name(self):
+        return self.user.name
+
     def get_server_name(self):
         server_name = "Not in a guild!"
         for guild in self.guilds:

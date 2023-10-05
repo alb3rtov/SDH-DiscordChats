@@ -84,6 +84,13 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     if (result.success) {
       setOnlineMembers(result.result as DictType)
     }
+  }  
+  
+  const get_online_members_m = async () => {
+    const result = await serverAPI!.callPluginMethod("get_online_members_m", {});
+    if (result.success) {
+      setOnlineMembers(result.result as DictType)
+    }
   }
 
   const get_offline_members = async () => {
@@ -91,7 +98,14 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     if (result.success) {
       setOfflineMembers(result.result as DictType)
     }
-  }  
+  }
+
+  const get_offline_members_m = async () => {
+    const result = await serverAPI!.callPluginMethod("get_offline_members_m", {});
+    if (result.success) {
+      setOfflineMembers(result.result as DictType)
+    }
+  }
 
   /*
   const send_message_to_user = async () => {
@@ -106,6 +120,8 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     if (login == 1) {
       get_server_name_m();
       get_channels_m();
+      get_online_members_m();
+      get_offline_members_m();
       if (serverName == "") {
         setTimeout(()=>{
           get_server_name();
@@ -140,12 +156,19 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     </PanelSection>
   );
 
-
   const Channels = (
     <PanelSection title="Channels">
       <PanelSectionRow>
         {Object.entries(channels).map(([key, name]) => (
-          <Field key={key} focusable={true} label={name}></Field>
+          <Field 
+            key={key} 
+            focusable={true} 
+            label={name} 
+            onClick={() => {
+              Router.CloseSideMenus();
+              Router.Navigate("/decky-plugin-test");
+            }}>
+          </Field>
         ))}
         </PanelSectionRow>
     </PanelSection>
@@ -241,22 +264,26 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
 };
 
 
-const DeckyPluginRouterTest: VFC = () => {
+const DeckyPluginRouterTest: VFC<{ customProp: string }> = (props) => {
   return (
     <div style={{ marginTop: "50px", color: "white" }}>
-      Hello World!
+      <Field label={"alb3rtov"} description={props.customProp}></Field>
+      {/*
       <DialogButton onClick={() => Router.NavigateToLibraryTab()}>
         Go to Library
-      </DialogButton>
+      </DialogButton>*/}
     </div>
   );
 };
 
 export default definePlugin((serverApi: ServerAPI) => {
 
-  serverApi.routerHook.addRoute("/decky-plugin-test", DeckyPluginRouterTest, {
+  serverApi.routerHook.addRoute("/decky-plugin-test", () => (
+    <DeckyPluginRouterTest customProp="Your Custom Value" />
+  ), {
     exact: true,
   });
+
 
   return {
     title: <div className={staticClasses.Title}>Discord Chats</div>,

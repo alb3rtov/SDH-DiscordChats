@@ -21,11 +21,24 @@ def run_bot(client, token, login):
     except Exception as e:
         decky_plugin.logger.info(f"An error occurred: {e}")
 
-class Plugin:    
+class Plugin:
+    async def get_user_name_m(self):
+        return self.user_name
+    
+    async def get_user_name(self):
+        self.user_name = self.client.get_user_name()
+        return self.user_name
+
+    async def get_offline_members_m(self):
+        return self.offline_members
+
     async def get_offline_members(self):
         self.offline_members = self.client.get_offline_members()
         return self.offline_members
-        
+
+    async def get_online_members_m(self):
+        return self.online_members
+
     async def get_online_members(self):
         self.online_members = self.client.get_online_members()
         return self.online_members
