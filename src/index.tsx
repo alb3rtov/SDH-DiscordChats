@@ -51,57 +51,29 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     setLogin(status as number)
   }
 
-  const get_server_name = async () => {
-    const result = await serverAPI!.callPluginMethod("get_server_name", {});
+  const get_server_name = async (api : number) => {
+    const result = await serverAPI!.callPluginMethod("get_server_name", {"flag":api});
     if (result.success) {
       setServerName(result.result as string)
     }
   }
 
-  const get_server_name_m = async () => {
-    const result = await serverAPI!.callPluginMethod("get_server_name_m", {});
-    if (result.success) {
-      setServerName(result.result as string)
-    }
-  }
-
-  const get_channels = async () => {
-    const result = await serverAPI!.callPluginMethod("get_channels", {});
+  const get_channels = async (api : number) => {
+    const result = await serverAPI!.callPluginMethod("get_channels", {"flag":api});
     if (result.success) {
       setChannels(result.result as DictType)
     }
   }  
   
-  const get_channels_m = async () => {
-    const result = await serverAPI!.callPluginMethod("get_channels_m", {});
-    if (result.success) {
-      setChannels(result.result as DictType)
-    }
-  }
-  
-  const get_online_members = async () => {
-    const result = await serverAPI!.callPluginMethod("get_online_members", {});
+  const get_online_members = async (api : number) => {
+    const result = await serverAPI!.callPluginMethod("get_online_members", {"flag":api});
     if (result.success) {
       setOnlineMembers(result.result as DictType)
     }
   }  
-  
-  const get_online_members_m = async () => {
-    const result = await serverAPI!.callPluginMethod("get_online_members_m", {});
-    if (result.success) {
-      setOnlineMembers(result.result as DictType)
-    }
-  }
 
-  const get_offline_members = async () => {
-    const result = await serverAPI!.callPluginMethod("get_offline_members", {});
-    if (result.success) {
-      setOfflineMembers(result.result as DictType)
-    }
-  }
-
-  const get_offline_members_m = async () => {
-    const result = await serverAPI!.callPluginMethod("get_offline_members_m", {});
+  const get_offline_members = async (api : number) => {
+    const result = await serverAPI!.callPluginMethod("get_offline_members", {"flag":api});
     if (result.success) {
       setOfflineMembers(result.result as DictType)
     }
@@ -118,18 +90,18 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
 
   useEffect(() => {
     if (login == 1) {
-      get_server_name_m();
-      get_channels_m();
-      get_online_members_m();
-      get_offline_members_m();
-      if (serverName == "") {
-        setTimeout(()=>{
-          get_server_name();
-          get_channels();
-          get_online_members();
-          get_offline_members();
-        }, 4000)
-      }
+      get_server_name(0);
+      get_channels(0);
+      get_online_members(0);
+      get_offline_members(0);
+
+      setInterval(() => {
+        get_server_name(1);
+        get_channels(1);
+        get_online_members(1);
+        get_offline_members(1);
+      }, 10000); // Update every 10 seconds
+
     }
   }, [login]);
 
