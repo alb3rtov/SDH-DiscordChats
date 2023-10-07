@@ -23,7 +23,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   const [offlineMembers, setOfflineMembers] = useState<DictType>({});
   const [login, setLogin] = useState(0);
   const [loginStarted, setLoginStarted] = useState(0);
-  
+  const [loadingData, setLoadingData] = useState<boolean>(false);
   /*
   const test_print = async () => {
     console.log("This is a test")
@@ -42,7 +42,6 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
 
   const get_login_status = async () => {
     const result = await serverAPI!.callPluginMethod("get_login", {});
-    console.log("login status:" + result.result)
     if (result.success) {
       setLogin(result.result as number)
     }
@@ -98,11 +97,13 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
       get_online_members(0);
       get_offline_members(0);
 
+      setLoadingData(true)
       setTimeout(()=>{
         get_server_name(1);
         get_channels(1);
         get_online_members(1);
         get_offline_members(1);
+        setLoadingData(false)
       }, 4000)
     }
   }, [login]);
@@ -146,7 +147,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 
   const Channels = (
-    <PanelSection title="Channels">
+    <PanelSection title="Channels" spinner={loadingData}>
       <PanelSectionRow>
         {Object.entries(channels).map(([key, name]) => (
           <Field 
@@ -179,7 +180,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   }
 
   const OnlineMembers = (
-      <PanelSection title={"Online (" + Object.keys(onlineMembers).length + ")"}>
+      <PanelSection title={"Online (" + Object.keys(onlineMembers).length + ")"} spinner={loadingData}>
         <PanelSectionRow>
         {Object.entries(onlineMembers).map(([key, name]) => {
           const [userName, status] = name.split(';');
@@ -193,7 +194,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 
   const OfflineMembers = (
-      <PanelSection title={"Offline (" + Object.keys(offlineMembers).length + ")"}>
+      <PanelSection title={"Offline (" + Object.keys(offlineMembers).length + ")"} spinner={loadingData}>
         <PanelSectionRow>
         {Object.entries(offlineMembers).map(([key, name]) => {
           const icon = getStatusIcon("Offline"); 
@@ -222,7 +223,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 
   const ServerChats = (
-    <PanelSection title={`Server: ${serverName}`}>
+    <PanelSection title={`Server: ${serverName}`} spinner={loadingData}>
       {Channels}
       {OnlineMembers}
       {OfflineMembers}
