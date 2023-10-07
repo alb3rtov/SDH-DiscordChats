@@ -21,10 +21,10 @@ class BotClient(discord.Client):
             break
         return server_name
 
-    async def send_message_to_user(self, user_id):
+    async def send_message_to_user(self, user_id, msg):
         user = self.get_user(user_id)
         if user:
-            await user.send("desdes el plugin te mando este mensaje")
+            await user.send(msg)
         else:
             decky_plugin.logger.info("Usuario no encontrado")
     

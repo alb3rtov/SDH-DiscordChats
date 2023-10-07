@@ -49,8 +49,8 @@ class Plugin:
             self.server_name = self.client.get_server_name()
         return self.server_name
 
-    async def send_message_to_user(self):
-        asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(1), self.client.loop)
+    async def send_message_to_user(self, id, msg):
+        asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(int(id), msg), self.client.loop)
         
     async def get_login(self):
         return self.login[0]

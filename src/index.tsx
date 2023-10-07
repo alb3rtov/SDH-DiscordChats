@@ -7,6 +7,8 @@ import {
   staticClasses,
   Router,
 //DialogButton,
+  TextField,
+  useParams,
   ButtonItem,
 } from "decky-frontend-lib";
 import React, { VFC, useState, useEffect } from "react";
@@ -24,12 +26,6 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   const [login, setLogin] = useState(0);
   const [loginStarted, setLoginStarted] = useState(0);
   const [loadingData, setLoadingData] = useState<boolean>(false);
-  /*
-  const test_print = async () => {
-    console.log("This is a test")
-    setConnectedFriends(20);
-    setDisconnectedFriends(50);
-  }*/
 
   const close_session = async () => {
     setLogin(2);
@@ -81,10 +77,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     }
   }
 
-  /*
-  const send_message_to_user = async () => {
-    await serverAPI!.callPluginMethod("send_message_to_user", {});
-  } */
+
 
   useEffect(() => {
     get_login_status();
@@ -104,7 +97,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
         get_online_members(1);
         get_offline_members(1);
         setLoadingData(false)
-      }, 4000)
+      }, 2000)
     }
   }, [login]);
 
@@ -147,7 +140,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 
   const Channels = (
-    <PanelSection title="Channels" spinner={loadingData}>
+    <PanelSection title="Channels">
       <PanelSectionRow>
         {Object.entries(channels).map(([key, name]) => (
           <Field 
@@ -155,8 +148,8 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
             focusable={true} 
             label={name} 
             onClick={() => {
+              Router.Navigate(`/discordchat/${name}/${key}`);
               Router.CloseSideMenus();
-              Router.Navigate("/decky-plugin-test");
             }}>
           </Field>
         ))}
@@ -180,13 +173,23 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   }
 
   const OnlineMembers = (
-      <PanelSection title={"Online (" + Object.keys(onlineMembers).length + ")"} spinner={loadingData}>
+      <PanelSection title={"Online (" + Object.keys(onlineMembers).length + ")"}>
         <PanelSectionRow>
         {Object.entries(onlineMembers).map(([key, name]) => {
           const [userName, status] = name.split(';');
           const icon = getStatusIcon(status); 
           return (
-            <Field key={key} icon={icon} focusable={true} label={userName} description={status}></Field>
+            <Field 
+              key={key} 
+              icon={icon} 
+              focusable={true} 
+              label={userName} 
+              description={status}
+              onClick={() => {
+                Router.Navigate(`/discordchat/${userName}/${key}`);
+                Router.CloseSideMenus();
+              }}>
+            </Field>
           );
         })}
           </PanelSectionRow>
@@ -194,12 +197,22 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 
   const OfflineMembers = (
-      <PanelSection title={"Offline (" + Object.keys(offlineMembers).length + ")"} spinner={loadingData}>
+      <PanelSection title={"Offline (" + Object.keys(offlineMembers).length + ")"}>
         <PanelSectionRow>
         {Object.entries(offlineMembers).map(([key, name]) => {
           const icon = getStatusIcon("Offline"); 
           return (
-            <Field key={key} icon={icon} focusable={true} label={name} description="Offline"></Field>
+            <Field 
+              key={key} 
+              icon={icon} 
+              focusable={true} 
+              label={name} 
+              description="Offline"
+              onClick={() => {
+                Router.Navigate(`/discordchat/${name}/${key}`);
+                Router.CloseSideMenus();
+              }}>
+            </Field>
           );
         })}
           </PanelSectionRow>
@@ -258,33 +271,53 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 };
 
-const DeckyPluginRouterTest: VFC<{ customProp: string }> = (props) => {
+
+
+const Chat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
+
+  const send_message_to_user = async (id: string, msg: string) => {
+    await serverAPI!.callPluginMethod("send_message_to_user", {'id':id,'msg':msg});
+  }
+
+  const { chatname, id } = useParams<{ chatname: string, id: string }>();
+  const [message, setMessage] = useState("")
   return (
     <div style={{ marginTop: "50px", color: "white" }}>
-      <Field label={"alb3rtov"} description={props.customProp}></Field>
-      {/*
-      <DialogButton onClick={() => Router.NavigateToLibraryTab()}>
-        Go to Library
-      </DialogButton>*/}
+      <Field label={`${chatname}`} ></Field>
+
+      <TextField
+        value={message}
+        onChange={(e) => {
+          setMessage(e.target.value);
+        }}
+      />
+
+      <ButtonItem
+        layout="below"
+        onClick={() => {
+          setMessage("")
+          send_message_to_user(id, message);
+        }}
+      >
+        Send
+      </ButtonItem>
     </div>
   );
 };
 
 export default definePlugin((serverApi: ServerAPI) => {
-
-  serverApi.routerHook.addRoute("/decky-plugin-test", () => (
-    <DeckyPluginRouterTest customProp="Your Custom Value" />
+  serverApi.routerHook.addRoute("/discordchat/:chatname/:id", () => (
+    <Chat serverAPI={serverApi}/>
   ), {
     exact: true,
   });
-
 
   return {
     title: <div className={staticClasses.Title}>Discord Chats</div>,
     content: <Content serverAPI={serverApi} />,
     icon: <FaDiscord />,
     onDismount() {
-      serverApi.routerHook.removeRoute("/decky-plugin-test");
+      serverApi.routerHook.removeRoute("/discordchat/:id");
     },
   };
 });

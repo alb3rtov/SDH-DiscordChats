@@ -4,7 +4,7 @@
   "flags": ["debug", "_root"],
   "publish": {
     "tags": ["template", "root"],
-    "description": "Talk to your friends via discord from the steam deck game ui. Similar to Friends steam deck tab.",
+    "description": "DiscordChats is a plugin for the Steam Deck, to use the discord chats of a specific server. Write in all channels and to all members of the server.",
     "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
   }
 }
