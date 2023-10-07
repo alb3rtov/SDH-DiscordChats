@@ -6,7 +6,7 @@ import {
   ServerAPI,
   staticClasses,
   Router,
-  DialogButton,
+//DialogButton,
   ButtonItem,
 } from "decky-frontend-lib";
 import React, { VFC, useState, useEffect } from "react";
@@ -22,6 +22,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   const [onlineMembers, setOnlineMembers] = useState<DictType>({});
   const [offlineMembers, setOfflineMembers] = useState<DictType>({});
   const [login, setLogin] = useState(0);
+  const [loginStarted, setLoginStarted] = useState(0);
   
   /*
   const test_print = async () => {
@@ -41,15 +42,17 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
 
   const get_login_status = async () => {
     const result = await serverAPI!.callPluginMethod("get_login", {});
+    console.log("login status:" + result.result)
     if (result.success) {
       setLogin(result.result as number)
     }
   }
 
+  /*
   const set_login_status = async (status: number) => {
     await serverAPI!.callPluginMethod("set_login", {"status":status});
     setLogin(status as number)
-  }
+  }*/
 
   const get_server_name = async (api : number) => {
     const result = await serverAPI!.callPluginMethod("get_server_name", {"flag":api});
@@ -95,15 +98,26 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
       get_online_members(0);
       get_offline_members(0);
 
-      setInterval(() => {
+      setTimeout(()=>{
         get_server_name(1);
         get_channels(1);
         get_online_members(1);
         get_offline_members(1);
-      }, 10000); // Update every 10 seconds
-
+      }, 4000)
     }
   }, [login]);
+
+  const TokenError = (
+    <PanelSectionRow style={{ fontSize: "13px", marginLeft: "18px", marginRight: "18px", marginBottom: "20px"}}>
+     The token used is not correct. Make sure that the token corresponds to the bot you have created. When it is fixed, reinstall the plugin.
+    </PanelSectionRow>
+  );
+
+  const TokenFileError = (
+    <PanelSectionRow style={{ fontSize: "13px", marginLeft: "18px", marginRight: "18px", marginBottom: "20px"}}>
+     The token file was not found, make sure it is in the directory /home/deck/homebrew/services/token.txt. When it is fixed, reinstall the plugin.
+    </PanelSectionRow>
+  );
 
   const Sessions = (
     <PanelSectionRow style={{ fontSize: "13px", marginLeft: "18px", marginRight: "18px", marginBottom: "20px"}}>
@@ -112,13 +126,16 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 
   const Login = (
-    <PanelSection title="Login">
+    <PanelSection title="Login" spinner={login === 0 && loginStarted === 1}>
       <PanelSectionRow>
         <ButtonItem
           layout="below"
           onClick={() => {
-            set_login_status(1);
             start_bot();
+            setLoginStarted(1)
+            setTimeout(() => {
+              get_login_status();
+            }, 3000);
           }}
         >
           Login with token
@@ -221,7 +238,6 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     </PanelSectionRow>
   );
   
-
   return (
     <React.Fragment >
       {login == 0 && Login}
@@ -231,10 +247,15 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
       {login == 2 && Logo}
 
       {login == 1 && ServerChats}
+
+      {login == 3 && TokenFileError}
+      {login == 3 && Logo}
+
+      {login == 4 && TokenError}
+      {login == 4 && Logo}
     </React.Fragment>
   );
 };
-
 
 const DeckyPluginRouterTest: VFC<{ customProp: string }> = (props) => {
   return (

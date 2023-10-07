@@ -17,8 +17,10 @@ os.environ["SSL_CERT_FILE"] = certifi.where()
 
 def run_bot(client, token, login):
     try:
+        login[0] = 1
         client.run(token)
     except Exception as e:
+        login[0] = 4
         decky_plugin.logger.info(f"An error occurred: {e}")
 
 class Plugin:
@@ -42,16 +44,14 @@ class Plugin:
             self.channels = self.client.get_channels()
         return self.channels
 
+    async def get_server_name(self, flag):
+        if flag == 1:
+            self.server_name = self.client.get_server_name()
+        return self.server_name
+
     async def send_message_to_user(self):
         asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(1), self.client.loop)
         
-    async def get_server_name(self):
-        self.server_name = self.client.get_server_name()
-        return self.server_name
-
-    async def get_server_name_m(self):
-        return self.server_name
-
     async def get_login(self):
         return self.login[0]
 
@@ -81,7 +81,9 @@ class Plugin:
         try:
             with open("token.txt", "r") as file:
                 self.token = file.read()
+                self.login[0] = 0
         except Exception as e:
+            self.login[0] = 3
             decky_plugin.logger.info(e)
 
         decky_plugin.logger.info("Fin Hello World!")
