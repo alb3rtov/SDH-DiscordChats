@@ -1,6 +1,6 @@
 {
   "name": "sdh-discordchats",
-  "version": "0.1.1",
+  "version": "0.1.6",
   "description": "DiscordChats is a plugin for the Steam Deck, to use the discord chats of a specific server. Write in all channels and to all members of the server.",
   "scripts": {
     "build": "shx rm -rf dist && rollup -c",
@@ -39,7 +39,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "decky-frontend-lib": "^3.22.0",
+    "decky-frontend-lib": "^3.23.0",
     "react-icons": "^4.4.0"
   },
   "pnpm": {

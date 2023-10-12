@@ -6,13 +6,14 @@ import {
   ServerAPI,
   staticClasses,
   Router,
-//DialogButton,
   TextField,
   useParams,
   ButtonItem,
 } from "decky-frontend-lib";
-import React, { VFC, useState, useEffect } from "react";
+import React, { VFC, useRef, useState, useEffect } from "react";
 import { FaDiscord, FaDotCircle, FaCircle, FaMoon, FaMinusCircle } from "react-icons/fa";
+
+import { ModalPosition, Panel, ScrollPanelGroup } from "./components/Scrollable";
 
 import logo from "../assets/logo3.png";
 
@@ -76,8 +77,6 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
       setOfflineMembers(result.result as DictType)
     }
   }
-
-
 
   useEffect(() => {
     get_login_status();
@@ -148,7 +147,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
             focusable={true} 
             label={name} 
             onClick={() => {
-              Router.Navigate(`/discordchat/${name}/${key}`);
+              Router.Navigate(`/discordchatc/${name}/${key}`);
               Router.CloseSideMenus();
             }}>
           </Field>
@@ -157,20 +156,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     </PanelSection>
   );  
   
-  function getStatusIcon(status : string) {
-    switch (status) {
-      case "Online":
-        return <FaCircle size={10} color="#43b581" />;
-      case "Idle":
-        return <FaMoon size={10} color="#faa61a" />;
-      case "Do Not Disturb":
-        return <FaMinusCircle size={10} color="#f04747" />;
-      case "Offline":
-        return <FaDotCircle size={10} color="#747f8d" />; 
-      default:
-        return null;
-    }
-  }
+
 
   const OnlineMembers = (
       <PanelSection title={"Online (" + Object.keys(onlineMembers).length + ")"}>
@@ -186,7 +172,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
               label={userName} 
               description={status}
               onClick={() => {
-                Router.Navigate(`/discordchat/${userName}/${key}`);
+                Router.Navigate(`/discordchatu/${userName}/${status}/${key}`);
                 Router.CloseSideMenus();
               }}>
             </Field>
@@ -209,7 +195,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
               label={name} 
               description="Offline"
               onClick={() => {
-                Router.Navigate(`/discordchat/${name}/${key}`);
+                Router.Navigate(`/discordchatu/${name}/Offline/${key}`);
                 Router.CloseSideMenus();
               }}>
             </Field>
@@ -271,19 +257,42 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 };
 
+function getStatusIcon(status : string) {
+  switch (status) {
+    case "Online":
+      return <FaCircle size={10} color="#43b581" />;
+    case "Idle":
+      return <FaMoon size={10} color="#faa61a" />;
+    case "Do Not Disturb":
+      return <FaMinusCircle size={10} color="#f04747" />;
+    case "Offline":
+      return <FaDotCircle size={10} color="#747f8d" />; 
+    default:
+      return null;
+  }
+}
 
+const ChannelChat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
 
-const Chat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
+  const { channel, id } = useParams<{ channel: string, id: string }>();
+  const [message, setMessage] = useState("")
+  const icon = getStatusIcon("Offline")
 
-  const send_message_to_user = async (id: string, msg: string) => {
-    await serverAPI!.callPluginMethod("send_message_to_user", {'id':id,'msg':msg});
+  const send_message_to_channel = async (id: string, msg: string) => {
+    if (message.trim() !== "") {
+      //await serverAPI!.callPluginMethod("send_message_to_channel", {'id':id,'msg':msg});
+      setMessage(""); 
+    }
   }
 
-  const { chatname, id } = useParams<{ chatname: string, id: string }>();
-  const [message, setMessage] = useState("")
   return (
-    <div style={{ marginTop: "50px", color: "white" }}>
-      <Field label={`${chatname}`} ></Field>
+    <div style={{ marginTop: "50px", marginBottom: "50px", marginLeft: "100px", marginRight: "100px", color: "white" }}>
+    
+      <Field 
+        label={channel}
+      >
+
+      </Field>
 
       <TextField
         value={message}
@@ -295,8 +304,7 @@ const Chat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
       <ButtonItem
         layout="below"
         onClick={() => {
-          setMessage("")
-          send_message_to_user(id, message);
+          send_message_to_channel(id, message)
         }}
       >
         Send
@@ -305,9 +313,95 @@ const Chat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
   );
 };
 
+const UserChat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
+
+  const { username, status, id } = useParams<{ username: string, status: string, id: string }>();
+  const [message, setMessage] = useState("")
+  const icon = getStatusIcon(status);
+
+  const scrollPanelRef = useRef<HTMLDivElement | null>(null);
+
+  const send_message_to_user = async (id: string, msg: string) => {
+    if (message.trim() !== "") {
+      await serverAPI!.callPluginMethod("send_message_to_user", {'id':id,'msg':msg});
+      setMessage(""); 
+    }      
+    if (scrollPanelRef.current) {
+      scrollPanelRef.current.scrollTop = scrollPanelRef.current.scrollHeight;
+    }
+  }  
+  
+  useEffect(() => {
+    // Scroll to the bottom when the component mounts
+    if (scrollPanelRef.current) {
+      scrollPanelRef.current.scrollTop = scrollPanelRef.current.scrollHeight;
+    }    
+  }, []);
+
+  return (
+    <div style={{ marginTop: "50px", marginBottom: "50px", marginLeft: "100px", marginRight: "100px", color: "white" }}>
+      
+      <Field 
+        label={username}
+        description={status}
+        icon={icon}
+      />
+    
+      <div>
+        <ModalPosition >
+          <Panel style={{ display: "flex", flexDirection: "column", minHeight: 0, marginTop: "50px", marginBottom: "10px", marginLeft: "80px", marginRight: "80px" }}>
+            <ScrollPanelGroup focusable={false} style={{ flex: 1, minHeight: 0, padding: "12px"}} scrollPaddingTop={32} ref={scrollPanelRef}>
+              <Panel focusable={true} noFocusRing={true} >
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+              </Panel>
+            </ScrollPanelGroup>
+            <div>
+              <TextField
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                }}
+              />
+
+              <ButtonItem
+                layout="below"
+                onClick={() => {
+                  send_message_to_user(id, message);
+                }}
+              >
+                Send
+              </ButtonItem>
+            </div>
+          </Panel>
+        </ModalPosition>
+      </div>
+    </div>
+  );
+};
+
 export default definePlugin((serverApi: ServerAPI) => {
-  serverApi.routerHook.addRoute("/discordchat/:chatname/:id", () => (
-    <Chat serverAPI={serverApi}/>
+  serverApi.routerHook.addRoute("/discordchatu/:username/:status/:id", () => (
+    <UserChat serverAPI={serverApi}/>
+  ), {
+    exact: true,
+  });
+
+  serverApi.routerHook.addRoute("/discordchatc/:channel/:id", () => (
+    <ChannelChat serverAPI={serverApi}/>
   ), {
     exact: true,
   });
@@ -317,7 +411,8 @@ export default definePlugin((serverApi: ServerAPI) => {
     content: <Content serverAPI={serverApi} />,
     icon: <FaDiscord />,
     onDismount() {
-      serverApi.routerHook.removeRoute("/discordchat/:id");
+      serverApi.routerHook.removeRoute("/discordchatu/:username/:status/:id");
+      serverApi.routerHook.removeRoute("/discordchatc/:channel/:id");
     },
   };
 });
