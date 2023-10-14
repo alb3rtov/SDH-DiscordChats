@@ -24,6 +24,14 @@ def run_bot(client, token, login):
         decky_plugin.logger.info(f"An error occurred: {e}")
 
 class Plugin:
+    async def get_dms_specific_user(self, username):
+        decky_plugin.logger.info("FM: antes de ejecutar")
+        asyncio.run_coroutine_threadsafe(self.client.get_dms_specific_user(username), self.client.loop)
+        decky_plugin.logger.info("FM: despues de ejecutar")
+
+    async def get_current_dms(self):
+        return self.client.dms
+
     async def get_user_name(self, flag):
         if flag == 1:
             self.user_name = self.client.get_user_name()
@@ -50,7 +58,9 @@ class Plugin:
         return self.server_name
 
     async def send_message_to_user(self, id, msg):
+        decky_plugin.logger.info("FM: sending message1...")
         asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(int(id), msg), self.client.loop)
+        decky_plugin.logger.info("FM: sending message2...")
         
     async def get_login(self):
         return self.login[0]
@@ -77,7 +87,7 @@ class Plugin:
         self.channels = {}
         self.online_members = {}
         self.offline_members = {}
-        
+
         try:
             with open("token.txt", "r") as file:
                 self.token = file.read()

@@ -7,6 +7,7 @@ class BotClient(discord.Client):
         intents.members = True
         intents.presences = True
         super().__init__(intents=intents)
+        self.dms = {}
 
     async def on_ready(self):
         decky_plugin.logger.info(f'Logged in as {self.user.name}')
@@ -54,6 +55,18 @@ class BotClient(discord.Client):
 
                     online_members[member.id] = str(member.name) + ";" + status
         return online_members
+
+    async def get_dms_specific_user(self, username):
+        counter = 100
+        user = discord.utils.get(self.get_all_members(), name=username)
+        if user is not None:
+            private_channel = await user.create_dm()
+
+            async for message in private_channel.history(limit=100):
+                self.dms[counter] = str(message.author.name) + ";" + str(message.content) # ; {message.created_at}')
+                counter -= 1
+        else:
+            decky_plugin.logger.info("Usuario no encontrado")
 
     def get_offline_members(self):
         offline_members = {}

@@ -6,12 +6,15 @@ import {
   ServerAPI,
   staticClasses,
   Router,
+  Navigation,
+  DialogButton,
   TextField,
   useParams,
   ButtonItem,
+  Focusable,
 } from "decky-frontend-lib";
 import React, { VFC, useRef, useState, useEffect } from "react";
-import { FaDiscord, FaDotCircle, FaCircle, FaMoon, FaMinusCircle } from "react-icons/fa";
+import { FaDiscord, FaDotCircle, FaCircle, FaMoon, FaMinusCircle, FaArrowLeft } from "react-icons/fa";
 
 import { ModalPosition, Panel, ScrollPanelGroup } from "./components/Scrollable";
 
@@ -23,10 +26,11 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   const [serverName, setServerName] = useState<string>("");
   const [channels, setChannels] = useState<DictType>({});
   const [onlineMembers, setOnlineMembers] = useState<DictType>({});
-  const [offlineMembers, setOfflineMembers] = useState<DictType>({});
+  const [offlineMembers, setOfflineMembers] = useState<DictType>({});  
   const [login, setLogin] = useState(0);
   const [loginStarted, setLoginStarted] = useState(0);
   const [loadingData, setLoadingData] = useState<boolean>(false);
+  //const [dummyResult, setDummyResult] = useState<boolean>(false);
 
   const close_session = async () => {
     setLogin(2);
@@ -43,12 +47,6 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
       setLogin(result.result as number)
     }
   }
-
-  /*
-  const set_login_status = async (status: number) => {
-    await serverAPI!.callPluginMethod("set_login", {"status":status});
-    setLogin(status as number)
-  }*/
 
   const get_server_name = async (api : number) => {
     const result = await serverAPI!.callPluginMethod("get_server_name", {"flag":api});
@@ -76,7 +74,9 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     if (result.success) {
       setOfflineMembers(result.result as DictType)
     }
-  }
+  }  
+  
+
 
   useEffect(() => {
     get_login_status();
@@ -100,6 +100,23 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
     }
   }, [login]);
 
+  /*
+  const BackendError = (
+    <PanelSection>
+      <PanelSectionRow style={{ fontSize: "13px", marginLeft: "18px", marginRight: "18px", marginBottom: "20px"}}>
+        DiscordChats failed to initialize, try reloading, and if that doesn't work, try restarting your deck.
+      </PanelSectionRow>
+      <ButtonItem
+          layout="below"
+          onClick={() => {
+            dummyFuncTest();
+          }}
+        >
+          Refresh
+        </ButtonItem> 
+    </PanelSection>
+  );*/
+
   const TokenError = (
     <PanelSectionRow style={{ fontSize: "13px", marginLeft: "18px", marginRight: "18px", marginBottom: "20px"}}>
      The token used is not correct. Make sure that the token corresponds to the bot you have created. When it is fixed, reinstall the plugin.
@@ -114,7 +131,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
 
   const Sessions = (
     <PanelSectionRow style={{ fontSize: "13px", marginLeft: "18px", marginRight: "18px", marginBottom: "20px"}}>
-     There is an active session, wait for it to close and try again later.
+     There is an active session, go back and try again.
     </PanelSectionRow>
   );
 
@@ -183,26 +200,26 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   );
 
   const OfflineMembers = (
-      <PanelSection title={"Offline (" + Object.keys(offlineMembers).length + ")"}>
-        <PanelSectionRow>
-        {Object.entries(offlineMembers).map(([key, name]) => {
-          const icon = getStatusIcon("Offline"); 
-          return (
-            <Field 
-              key={key} 
-              icon={icon} 
-              focusable={true} 
-              label={name} 
-              description="Offline"
-              onClick={() => {
-                Router.Navigate(`/discordchatu/${name}/Offline/${key}`);
-                Router.CloseSideMenus();
-              }}>
-            </Field>
-          );
-        })}
-          </PanelSectionRow>
-      </PanelSection>
+    <PanelSection title={"Offline (" + Object.keys(offlineMembers).length + ")"}>
+      <PanelSectionRow>
+      {Object.entries(offlineMembers).map(([key, name]) => {
+        const icon = getStatusIcon("Offline"); 
+        return (
+          <Field 
+            key={key} 
+            icon={icon} 
+            focusable={true} 
+            label={name} 
+            description="Offline"
+            onClick={() => {
+              Router.Navigate(`/discordchatu/${name}/Offline/${key}`);
+              Router.CloseSideMenus();
+            }}>
+          </Field>
+        );
+      })}
+        </PanelSectionRow>
+    </PanelSection>
   );  
 
   const LogOut = (
@@ -240,6 +257,8 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
   
   return (
     <React.Fragment >
+      {/*dummyResult && BackendError*/}
+
       {login == 0 && Login}
       {login == 0 && Logo}
 
@@ -318,6 +337,7 @@ const UserChat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
   const { username, status, id } = useParams<{ username: string, status: string, id: string }>();
   const [message, setMessage] = useState("")
   const icon = getStatusIcon(status);
+  const [currentChat, setCurrentChat] = useState<DictType>({});
 
   const scrollPanelRef = useRef<HTMLDivElement | null>(null);
 
@@ -329,47 +349,76 @@ const UserChat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
     if (scrollPanelRef.current) {
       scrollPanelRef.current.scrollTop = scrollPanelRef.current.scrollHeight;
     }
+  }    
+  
+  const get_dms_specific_user = async (username : string) => {
+    await serverAPI!.callPluginMethod("get_dms_specific_user", {"username":username});
   }  
   
+  const get_current_dms = async () => {
+    const result = await serverAPI!.callPluginMethod("get_current_dms", {});
+    if (result.success) {
+      setCurrentChat(result.result as DictType)
+    }
+  }  
+
+
   useEffect(() => {
-    // Scroll to the bottom when the component mounts
-    if (scrollPanelRef.current) {
-      scrollPanelRef.current.scrollTop = scrollPanelRef.current.scrollHeight;
-    }    
+    const fetchData = () => {
+      get_dms_specific_user(username)
+      get_current_dms();
+    };
+  
+    const fetchDataInterval = setInterval(fetchData, 500);
+
+    setTimeout(() => {
+      if (scrollPanelRef.current) {
+        scrollPanelRef.current.scrollTop = scrollPanelRef.current.scrollHeight;
+      }
+    }, 2000);
+
+    return () => {
+      clearInterval(fetchDataInterval);
+    };
   }, []);
 
   return (
-    <div style={{ marginTop: "50px", marginBottom: "50px", marginLeft: "100px", marginRight: "100px", color: "white" }}>
-      
-      <Field 
-        label={username}
-        description={status}
-        icon={icon}
-      />
-    
+    <div style={{ marginTop: "50px", marginBottom: "50px", marginLeft: "100px", marginRight: "100px" }}>
+      <div>
+        <Field 
+          label={username}
+          description={status}
+          icon={icon}
+        />
+      </div>
       <div>
         <ModalPosition >
           <Panel style={{ display: "flex", flexDirection: "column", minHeight: 0, marginTop: "50px", marginBottom: "10px", marginLeft: "80px", marginRight: "80px" }}>
             <ScrollPanelGroup focusable={false} style={{ flex: 1, minHeight: 0, padding: "12px"}} scrollPaddingTop={32} ref={scrollPanelRef}>
               <Panel focusable={true} noFocusRing={true} >
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
-                <Field label="username" bottomSeparator="none" description="esto seria un mensaje"/>
+              {Object.entries(currentChat).map(([key, name]) => {
+                const [userName, content] = name.split(';');
+                return (
+                  <Field
+                    key={key}
+                    label={userName}
+                    bottomSeparator="none"
+                    description={content}
+                  />
+                );
+              })}
               </Panel>
             </ScrollPanelGroup>
-            <div>
+            <Focusable style={{ display: "grid", gridTemplateColumns: "1fr 6fr 1fr",  gridGap: "0.5rem", padding: "8px 0" }}>
+              <DialogButton
+                onClick={() => {
+                  Navigation.NavigateBack();
+                  Navigation.OpenQuickAccessMenu(999);
+                }}
+              >
+                <FaArrowLeft size={15} color="#a1a1a1" />
+              </DialogButton>
+
               <TextField
                 value={message}
                 onChange={(e) => {
@@ -377,15 +426,15 @@ const UserChat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
                 }}
               />
 
-              <ButtonItem
-                layout="below"
+              <DialogButton
                 onClick={() => {
                   send_message_to_user(id, message);
                 }}
               >
                 Send
-              </ButtonItem>
-            </div>
+              </DialogButton>
+            </Focusable>
+
           </Panel>
         </ModalPosition>
       </div>
