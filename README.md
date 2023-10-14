@@ -1,6 +1,11 @@
 # SDH-DiscordChats
 DiscordChats is a plugin for the Steam Deck, to use the discord chats of a specific server. You will be able to write in all channels and to all members of the server, and also shows the status of each member. This is possible because it uses the [discord api](https://discordpy.readthedocs.io/en/stable/api.html) to create a bot which will be the user that will be used to perform all actions.
 
+<div style="display: flex;">
+  <img src="https://img001.prntscr.com/file/img001/S2xHxxKuTmu9yq0CLmf1UQ.png" width="300" />
+  <img src="https://img001.prntscr.com/file/img001/WxVABGfhRS6Umo57ZssZMg.png" width="300" />
+</div>
+
 ## Installation
 At the moment, you can only install this plugin manually. You have to options:
 
