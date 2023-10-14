@@ -25,12 +25,16 @@ def run_bot(client, token, login):
 
 class Plugin:
     async def get_dms_specific_user(self, username):
-        decky_plugin.logger.info("FM: antes de ejecutar")
         asyncio.run_coroutine_threadsafe(self.client.get_dms_specific_user(username), self.client.loop)
-        decky_plugin.logger.info("FM: despues de ejecutar")
+
+    async def get_messages_from_channel(self, channel_name):
+        asyncio.run_coroutine_threadsafe(self.client.get_messages_from_channel(channel_name), self.client.loop)
 
     async def get_current_dms(self):
         return self.client.dms
+
+    async def get_current_messages(self):
+        return self.client.chat_channel
 
     async def get_user_name(self, flag):
         if flag == 1:
@@ -58,9 +62,10 @@ class Plugin:
         return self.server_name
 
     async def send_message_to_user(self, id, msg):
-        decky_plugin.logger.info("FM: sending message1...")
         asyncio.run_coroutine_threadsafe(self.client.send_message_to_user(int(id), msg), self.client.loop)
-        decky_plugin.logger.info("FM: sending message2...")
+
+    async def send_message_to_channel(self, channel_name, msg):
+        asyncio.run_coroutine_threadsafe(self.client.send_message_to_channel(channel_name, msg), self.client.loop)
         
     async def get_login(self):
         return self.login[0]

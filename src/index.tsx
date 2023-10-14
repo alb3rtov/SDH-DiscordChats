@@ -164,7 +164,7 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
             focusable={true} 
             label={name} 
             onClick={() => {
-              Router.Navigate(`/discordchatc/${name}/${key}`);
+              Router.Navigate(`/discordchatc/${name}`);
               Router.CloseSideMenus();
             }}>
           </Field>
@@ -293,41 +293,104 @@ function getStatusIcon(status : string) {
 
 const ChannelChat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
 
-  const { channel, id } = useParams<{ channel: string, id: string }>();
+  const { channel } = useParams<{ channel: string }>();
   const [message, setMessage] = useState("")
-  const icon = getStatusIcon("Offline")
+  const [currentChat, setCurrentChat] = useState<DictType>({});
 
-  const send_message_to_channel = async (id: string, msg: string) => {
+  const scrollPanelRef = useRef<HTMLDivElement | null>(null);
+
+  const send_message_to_channel = async (channel_name: string, msg: string) => {
     if (message.trim() !== "") {
-      //await serverAPI!.callPluginMethod("send_message_to_channel", {'id':id,'msg':msg});
+      await serverAPI!.callPluginMethod("send_message_to_channel", {'channel_name':channel_name,'msg':msg});
       setMessage(""); 
     }
-  }
+  }     
+  
+  const get_messages_from_channel = async (channel_name : string) => {
+    await serverAPI!.callPluginMethod("get_messages_from_channel", {"channel_name":channel_name});
+  }  
+  
+  const get_current_messages = async () => {
+    const result = await serverAPI!.callPluginMethod("get_current_messages", {});
+    if (result.success) {
+      setCurrentChat(result.result as DictType)
+    }
+  }  
+  
+  useEffect(() => {
+    const fetchData = () => {
+      get_messages_from_channel(channel)
+      get_current_messages();
+    };
+  
+    const fetchDataInterval = setInterval(fetchData, 500);
+
+    setTimeout(() => {
+      if (scrollPanelRef.current) {
+        scrollPanelRef.current.scrollTop = scrollPanelRef.current.scrollHeight;
+      }
+    }, 2000);
+
+    return () => {
+      clearInterval(fetchDataInterval);
+    };
+  }, []);
+
 
   return (
-    <div style={{ marginTop: "50px", marginBottom: "50px", marginLeft: "100px", marginRight: "100px", color: "white" }}>
-    
-      <Field 
-        label={channel}
-      >
+    <div style={{ marginTop: "50px", marginBottom: "50px", marginLeft: "100px", marginRight: "100px" }}>
+      <div>
+        <Field 
+          label={channel}
+        />
+      </div>
+      <div>
+        <ModalPosition >
+          <Panel style={{ display: "flex", flexDirection: "column", minHeight: 0, marginTop: "50px", marginBottom: "10px", marginLeft: "80px", marginRight: "80px" }}>
+            <ScrollPanelGroup focusable={false} style={{ flex: 1, minHeight: 0, padding: "12px"}} scrollPaddingTop={32} ref={scrollPanelRef}>
+              <Panel focusable={true} noFocusRing={true} >
+                {Object.entries(currentChat).map(([key, name]) => {
+                  const [userName, content] = name.split(';');
+                  return (
+                    <Field
+                      key={key}
+                      label={userName}
+                      bottomSeparator="none"
+                      description={content}
+                    />
+                  );
+                })}
+              </Panel>
+            </ScrollPanelGroup>
+            <Focusable style={{ display: "grid", gridTemplateColumns: "1fr 6fr 1fr",  gridGap: "0.5rem", padding: "8px 0" }}>
+              <DialogButton
+                onClick={() => {
+                  Navigation.NavigateBack();
+                  Navigation.OpenQuickAccessMenu(999);
+                }}
+              >
+                <FaArrowLeft size={15} color="#a1a1a1" />
+              </DialogButton>
 
-      </Field>
+              <TextField
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                }}
+              />
 
-      <TextField
-        value={message}
-        onChange={(e) => {
-          setMessage(e.target.value);
-        }}
-      />
+              <DialogButton
+                onClick={() => {
+                  send_message_to_channel(channel, message);
+                }}
+              >
+                Send
+              </DialogButton>
+            </Focusable>
 
-      <ButtonItem
-        layout="below"
-        onClick={() => {
-          send_message_to_channel(id, message)
-        }}
-      >
-        Send
-      </ButtonItem>
+          </Panel>
+        </ModalPosition>
+      </div>
     </div>
   );
 };
@@ -362,7 +425,6 @@ const UserChat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
     }
   }  
 
-
   useEffect(() => {
     const fetchData = () => {
       get_dms_specific_user(username)
@@ -396,17 +458,17 @@ const UserChat: VFC<{ serverAPI: ServerAPI }> = ({serverAPI})  => {
           <Panel style={{ display: "flex", flexDirection: "column", minHeight: 0, marginTop: "50px", marginBottom: "10px", marginLeft: "80px", marginRight: "80px" }}>
             <ScrollPanelGroup focusable={false} style={{ flex: 1, minHeight: 0, padding: "12px"}} scrollPaddingTop={32} ref={scrollPanelRef}>
               <Panel focusable={true} noFocusRing={true} >
-              {Object.entries(currentChat).map(([key, name]) => {
-                const [userName, content] = name.split(';');
-                return (
-                  <Field
-                    key={key}
-                    label={userName}
-                    bottomSeparator="none"
-                    description={content}
-                  />
-                );
-              })}
+                {Object.entries(currentChat).map(([key, name]) => {
+                  const [userName, content] = name.split(';');
+                  return (
+                    <Field
+                      key={key}
+                      label={userName}
+                      bottomSeparator="none"
+                      description={content}
+                    />
+                  );
+                })}
               </Panel>
             </ScrollPanelGroup>
             <Focusable style={{ display: "grid", gridTemplateColumns: "1fr 6fr 1fr",  gridGap: "0.5rem", padding: "8px 0" }}>
@@ -449,7 +511,7 @@ export default definePlugin((serverApi: ServerAPI) => {
     exact: true,
   });
 
-  serverApi.routerHook.addRoute("/discordchatc/:channel/:id", () => (
+  serverApi.routerHook.addRoute("/discordchatc/:channel", () => (
     <ChannelChat serverAPI={serverApi}/>
   ), {
     exact: true,
@@ -461,7 +523,7 @@ export default definePlugin((serverApi: ServerAPI) => {
     icon: <FaDiscord />,
     onDismount() {
       serverApi.routerHook.removeRoute("/discordchatu/:username/:status/:id");
-      serverApi.routerHook.removeRoute("/discordchatc/:channel/:id");
+      serverApi.routerHook.removeRoute("/discordchatc/:channel");
     },
   };
 });
