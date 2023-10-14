@@ -2,8 +2,8 @@
 DiscordChats is a plugin for the Steam Deck, to use the discord chats of a specific server. You will be able to write in all channels and to all members of the server, and also shows the status of each member. This is possible because it uses the [discord api](https://discordpy.readthedocs.io/en/stable/api.html) to create a bot which will be the user that will be used to perform all actions.
 
 <div style="display: flex;">
-  <img src="https://img001.prntscr.com/file/img001/S2xHxxKuTmu9yq0CLmf1UQ.png" width="300" />
-  <img src="https://img001.prntscr.com/file/img001/WxVABGfhRS6Umo57ZssZMg.png" width="300" />
+  <img src="https://i.imgur.com/SMPrZxT.png" width="300" />
+  <img src="https://i.imgur.com/e1wxx7W.png" width="300" />
 </div>
 
 ## Installation
@@ -11,6 +11,7 @@ At the moment, you can only install this plugin manually. You have to options:
 
 1. Download the latest release package (ZIP file): https://github.com/alb3rtov/SDH-DiscordChats/releases
 2. Copy the ZIP file to Steam Deck and install it from Decky loader. More info here: https://wiki.deckbrew.xyz/en/user-guide/settings
+3. Configure the token as explained in [token configuration](https://github.com/alb3rtov/SDH-DiscordChats#token-configuration) section
 
 Alternatively, you can build the plugin SDH-DiscordChats from source code by following these steps:
 
@@ -32,13 +33,7 @@ Alternatively, you can build the plugin SDH-DiscordChats from source code by fol
     ```
 5. Generate a build from VSCode running the `setup` and `build` tasks. This will generate a ZIP file in a directory called `out`
 6. Copy the ZIP file to Steam Deck and install it from Decky loader. More info here: https://wiki.deckbrew.xyz/en/user-guide/settings
-
-## Discord server configuration 
-In the privacy settings of the server it is necessary to have the following options activated for the correct functioning of the plugin:
-
-- Direct messages: **On**
-- Message requests: **On**
-- Status of the activity: **On**
+7. Configure the token as explained in [token configuration](https://github.com/alb3rtov/SDH-DiscordChats#token-configuration) section
 
 ## Setup discord application bot
 First you have to create an `new application` in the [discord developers portal](https://discord.com/developers/applications) and gave it a name, for example `steamdeckchatbot`. Once you have created the application, you have to configure the next parameters:
@@ -57,6 +52,13 @@ First you have to create an `new application` in the [discord developers portal]
 - Get the URL generated at the bottom and paste it in the web browser. Then, select the guild/server you want to put the bot on.
 
 **DISCLAIMER: At the moment, this plugin only supports one server per bot. So if the bot are in several servers, the plugin will not work properly**
+
+## Discord server configuration 
+In the privacy settings of the server it is necessary to have the following options activated for the correct functioning of the plugin:
+
+- Direct messages: **On**
+- Message requests: **On**
+- Status of the activity: **On**
 
 If you want to add the bot to a discord server of which you are not the owner, you must have administrator permissions to do so, or have the owner add the bot for you.
 

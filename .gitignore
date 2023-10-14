@@ -61,3 +61,6 @@ cli/decky
 
 # Testing
 tests/
+
+# Releases
+releases/
